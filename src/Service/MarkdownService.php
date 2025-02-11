@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Derafu\Markdown\Service;
 
 use Derafu\Markdown\Contract\MarkdownCreatorInterface;
+use Derafu\Markdown\Contract\MarkdownServiceInterface;
 use InvalidArgumentException;
 use League\CommonMark\Extension\FrontMatter\Output\RenderedContentWithFrontMatter;
 use League\CommonMark\MarkdownConverter;
@@ -23,7 +24,7 @@ use League\CommonMark\MarkdownConverter;
  * This service initializes League\CommonMark, configuring the most relevant
  * options and extensions to provide enhanced Markdown rendering.
  */
-class MarkdownService
+class MarkdownService implements MarkdownServiceInterface
 {
     /**
      * Instance of the Markdown converter.
@@ -33,22 +34,30 @@ class MarkdownService
     private MarkdownConverter $markdown;
 
     /**
+     * Factory for creating a Markdown converter instance.
+     *
+     * @var MarkdownCreatorInterface
+     */
+    private MarkdownCreatorInterface $markdownCreator;
+
+    /**
      * Constructor to initialize the service and its dependencies.
      *
-     * @param MarkdownCreatorInterface $markdownCreator Factory for creating a
-     * Markdown converter instance.
+     * @param MarkdownCreatorInterface|array|null $markdownCreator Factory for
+     * creating a Markdown converter instance.
      */
     public function __construct(
-        private MarkdownCreatorInterface $markdownCreator
+        MarkdownCreatorInterface|array|null $markdownCreator = null
     ) {
+        if (is_array($markdownCreator)) {
+            $markdownCreator = new MarkdownCreator($markdownCreator);
+        }
+
+        $this->markdownCreator = $markdownCreator ?? new MarkdownCreator();
     }
 
     /**
-     * Renders a Markdown template and returns the generated HTML as a string.
-     *
-     * @param string $filepath Path to the Markdown template to be rendered.
-     * @param array $data Data to be passed to the template for variable substitution.
-     * @return string The generated HTML content.
+     * {@inheritDoc}
      */
     public function render(string $filepath, array $data = []): string
     {
@@ -68,13 +77,7 @@ class MarkdownService
     }
 
     /**
-     * Converts Markdown content into HTML.
-     *
-     * Also applies design-related adjustments to the rendered content.
-     *
-     * @param string $markdownContent The raw Markdown content.
-     * @param array $data Reference to the data array, allowing metadata extraction.
-     * @return string The processed HTML output.
+     * {@inheritDoc}
      */
     public function renderFromString(string $markdownContent, array &$data = []): string
     {
@@ -103,12 +106,7 @@ class MarkdownService
     }
 
     /**
-     * Lazily retrieves the Markdown converter instance.
-     *
-     * This ensures that the instance is only created when first accessed,
-     * which is useful in lazy service loading scenarios.
-     *
-     * @return MarkdownConverter The Markdown converter instance.
+     * {@inheritDoc}
      */
     public function getMarkdown(): MarkdownConverter
     {

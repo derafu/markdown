@@ -11,11 +11,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
  * See LICENSE file for more details.
  */
 
-use Derafu\Markdown\Service\MarkdownCreator;
 use Derafu\Markdown\Service\MarkdownService;
 
-// Initialize the Markdown service with the creator.
-$markdownService = new MarkdownService(new MarkdownCreator());
+// Initialize the Markdown service.
+$markdownService = new MarkdownService();
 
 // Determine the base path of the application (useful for linking assets).
 $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
