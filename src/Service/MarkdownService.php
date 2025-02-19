@@ -52,6 +52,7 @@ class MarkdownService implements MarkdownServiceInterface
      *
      * @param MarkdownCreatorInterface|array|null $markdownCreator Factory for
      * creating a Markdown converter instance.
+     * @param array $paths Paths to markdown templates.
      */
     public function __construct(
         MarkdownCreatorInterface|array|null $markdownCreator = null,
