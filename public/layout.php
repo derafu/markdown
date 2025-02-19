@@ -22,13 +22,13 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="<?= $__base_path ?>/guide_en">
-                            <i class="fa-solid fa-palette"></i>
+                            <i class="fa-solid fa-book"></i>
                             English Guide
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="<?= $__base_path ?>/guide_es">
-                            <i class="fa-solid fa-palette"></i>
+                            <i class="fa-solid fa-book"></i>
                             Guía en Español
                         </a>
                     </li>

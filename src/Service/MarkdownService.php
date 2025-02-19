@@ -41,26 +41,37 @@ class MarkdownService implements MarkdownServiceInterface
     private MarkdownCreatorInterface $markdownCreator;
 
     /**
+     * Paths for markdown templates.
+     *
+     * @var array
+     */
+    private array $paths;
+
+    /**
      * Constructor to initialize the service and its dependencies.
      *
      * @param MarkdownCreatorInterface|array|null $markdownCreator Factory for
      * creating a Markdown converter instance.
      */
     public function __construct(
-        MarkdownCreatorInterface|array|null $markdownCreator = null
+        MarkdownCreatorInterface|array|null $markdownCreator = null,
+        array $paths = []
     ) {
         if (is_array($markdownCreator)) {
             $markdownCreator = new MarkdownCreator($markdownCreator);
         }
 
         $this->markdownCreator = $markdownCreator ?? new MarkdownCreator();
+
+        $this->paths = $paths;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function render(string $filepath, array $data = []): string
+    public function render(string $template, array $data = []): string
     {
+        $filepath = $this->resolveTemplate($template);
         $markdownContent = $this->loadTemplate($filepath, $data);
         $content = $this->renderFromString($markdownContent, $data);
 
@@ -115,6 +126,40 @@ class MarkdownService implements MarkdownServiceInterface
         }
 
         return $this->markdown;
+    }
+
+    /**
+     * Resolves template path.
+     *
+     * @param string $template Template name or path.
+     * @return string Full template path.
+     * @throws InvalidArgumentException If template cannot be found.
+     */
+    private function resolveTemplate(string $template): string
+    {
+        // If absolute path, return as is.
+        $realpath = realpath($template);
+        if ($realpath) {
+            return $template;
+        }
+
+        // Add extension if not present.
+        if (!str_ends_with($template, '.md') && !str_ends_with($template, '.markdown')) {
+            $template .= '.md';
+        }
+
+        // Search in configured paths.
+        foreach ($this->paths as $path) {
+            $file = $path . '/' . $template;
+            if (file_exists($file)) {
+                return $file;
+            }
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'Template %s does not exists.',
+            $template
+        ));
     }
 
     /**
