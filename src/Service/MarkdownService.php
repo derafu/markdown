@@ -69,7 +69,7 @@ class MarkdownService implements MarkdownServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function render(string $template, array $data = []): string
+    public function render(string $template, array &$data = []): string
     {
         $filepath = $this->resolveTemplate($template);
         $markdownContent = $this->loadTemplate($filepath, $data);
@@ -210,7 +210,8 @@ class MarkdownService implements MarkdownServiceInterface
      */
     private function resolveLayout(string $layout): string
     {
-        if ($layout[0] === '/') {
+        $realpath = realpath($layout);
+        if ($realpath) {
             return $layout;
         }
 

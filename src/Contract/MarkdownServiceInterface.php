@@ -23,10 +23,11 @@ interface MarkdownServiceInterface
      * Renders a Markdown template and returns the generated HTML as a string.
      *
      * @param string $template File of the Markdown template to be rendered.
-     * @param array $data Data to be passed to the template for variable substitution.
+     * @param array $data Reference to the data array for variable substitution,
+     * allowing metadata extraction.
      * @return string The generated HTML content.
      */
-    public function render(string $template, array $data = []): string;
+    public function render(string $template, array &$data = []): string;
 
     /**
      * Converts Markdown content into HTML.
@@ -34,7 +35,8 @@ interface MarkdownServiceInterface
      * Also applies design-related adjustments to the rendered content.
      *
      * @param string $markdownContent The raw Markdown content.
-     * @param array $data Reference to the data array, allowing metadata extraction.
+     * @param array $data Reference to the data array for variable substitution,
+     * allowing metadata extraction.
      * @return string The processed HTML output.
      */
     public function renderFromString(string $markdownContent, array &$data = []): string;
