@@ -34,27 +34,8 @@ if (!$templateFilename) {
 }
 
 // Render the Markdown content within the specified layout.
-echo $markdownService->render(realpath($templateFilename), [
+$data = [
     '__view_layout' => __DIR__ . '/layout.php',
     '__base_path' => $basePath,
-]);
-
-/**
- * 🚀 Observations and possible improvements:
- *
- * 1️⃣ **Handle URLs without `.md` manually:**
- *    - Right now, if a user visits `/about`, it looks for `pages/about.html.md`.
- *    - Consider checking if `.md` is missing and appending it automatically.
- *
- * 2️⃣ **Fix issues with trailing slashes (`/`) in URLs:**
- *    - `/about/` currently results in searching for `pages/about/.html.md`, which is incorrect.
- *    - A simple `rtrim($request, '/')` before processing can fix this.
- *
- * 3️⃣ **Security Considerations:**
- *    - The script loads Markdown files dynamically based on user input.
- *    - Consider sanitizing `$request` to prevent unintended file access outside `pages/`.
- *
- * 4️⃣ **Improve Error Handling:**
- *    - If `error404.md` is missing, the script could fail.
- *    - You might want to return an explicit "404 Not Found" HTTP header using `header("HTTP/1.1 404 Not Found");`.
- */
+];
+echo $markdownService->render(realpath($templateFilename), $data);
