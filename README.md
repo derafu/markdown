@@ -1,5 +1,8 @@
 # Derafu: Markdown - PHP Markdown Rendering Library
 
+<!---
+[![CI Workflow](https://github.com/derafu/markdown/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/derafu/markdown/actions/workflows/ci.yml?query=branch%3Amain)
+-->
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 **Derafu Markdown** is a PHP library that provides a powerful Markdown rendering engine with support for advanced extensions. It leverages `league/commonmark` and additional features to enhance Markdown processing for documentation, blogs, and dynamic content.
@@ -20,14 +23,6 @@ Install via Composer:
 
 ```bash
 composer require derafu/markdown
-```
-
-## Example webpage
-
-To view the example webpage, run:
-
-```bash
-php -S localhost:9000 -t public
 ```
 
 ## Usage
@@ -153,13 +148,13 @@ __view_title: "Markdown Template Guide"
 ---
 ```
 
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
 ## License
 
-This library is licensed under the MIT License. See the `LICENSE` file for details.
-
-## Contributions
-
-Contributions are welcome! Open an issue or submit a pull request to improve this project.
+This package is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 ---
 

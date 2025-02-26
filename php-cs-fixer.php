@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Derafu: Markdown - Markdown service renderer library.
+ * Derafu: Foundation - Base for Derafu's Projects.
  *
  * Copyright (c) 2025 Esteban De La Fuente Rubio / Derafu <https://www.derafu.org>
  * Licensed under the MIT License.
