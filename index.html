@@ -35,11 +35,11 @@
 </ul>
 <h2><a id="content-installation" href="index.html#content-installation" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Installation</h2>
 <p>Install via Composer:</p>
-<pre><code class="language-bash">composer require derafu/markdown
+<pre><code class="line-numbers match-braces language-bash">composer require derafu/markdown
 </code></pre>
 <h2><a id="content-usage" href="index.html#content-usage" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Usage</h2>
 <h3><a id="content-basic-rendering" href="index.html#content-basic-rendering" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Basic Rendering</h3>
-<pre><code class="language-php">use Derafu\Markdown\Service\MarkdownCreator;
+<pre><code class="line-numbers match-braces language-php">use Derafu\Markdown\Service\MarkdownCreator;
 use Derafu\Markdown\Service\MarkdownService;
 
 $markdownService = new MarkdownService(new MarkdownCreator());
@@ -47,7 +47,7 @@ $markdownService = new MarkdownService(new MarkdownCreator());
 echo $markdownService-&gt;render('example.md');
 </code></pre>
 <h3><a id="content-rendering-with-layout" href="index.html#content-rendering-with-layout" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Rendering with Layout</h3>
-<pre><code class="language-php">$markdownService-&gt;render('example.md', [
+<pre><code class="line-numbers match-braces language-php">$markdownService-&gt;render('example.md', [
     '__view_layout' =&gt; 'layout.php',
     '__view_title' =&gt; 'My Markdown Page'
 ]);
@@ -57,50 +57,50 @@ echo $markdownService-&gt;render('example.md');
 <ul>
 <li>Task lists:</li>
 </ul>
-<pre><code class="language-markdown">- [x] Completed
+<pre><code class="line-numbers match-braces language-markdown">- [x] Completed
 - [ ] Pending
 </code></pre>
 <ul>
 <li>Tables:</li>
 </ul>
-<pre><code class="language-markdown">| Name  | Age |
+<pre><code class="line-numbers match-braces language-markdown">| Name  | Age |
 |-------|-----|
 | John  | 25  |
 | Alice | 30  |
 </code></pre>
 <h3><a id="content--table-of-contents-toc" href="index.html#content--table-of-contents-toc" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>📌 <strong>Table of Contents (TOC)</strong></h3>
-<pre><code class="language-markdown">[TOC]
+<pre><code class="line-numbers match-braces language-markdown">[TOC]
 
 ## Section 1
 ## Section 2
 </code></pre>
 <h3><a id="content--header-permalinks" href="index.html#content--header-permalinks" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>🔗 <strong>Header Permalinks</strong></h3>
-<pre><code class="language-markdown">### Important Header
+<pre><code class="line-numbers match-braces language-markdown">### Important Header
 </code></pre>
 <p>Generates an anchor link like <code>#important-header</code>.</p>
 <h3><a id="content--footnotes" href="index.html#content--footnotes" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>📝 <strong>Footnotes</strong></h3>
-<pre><code class="language-markdown">Here is a reference[^1].
+<pre><code class="line-numbers match-braces language-markdown">Here is a reference[^1].
 
 [^1]: Footnote text.
 </code></pre>
 <h3><a id="content--custom-attributes" href="index.html#content--custom-attributes" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>🏷 <strong>Custom Attributes</strong></h3>
-<pre><code class="language-markdown">### Title {.custom-class}
+<pre><code class="line-numbers match-braces language-markdown">### Title {.custom-class}
 </code></pre>
 <h3><a id="content--external-links-handling" href="index.html#content--external-links-handling" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>🔗 <strong>External Links Handling</strong></h3>
-<pre><code class="language-markdown">[Google](https://www.google.com)
+<pre><code class="line-numbers match-braces language-markdown">[Google](https://www.google.com)
 </code></pre>
 <p>Adds attributes like <code>rel=&quot;noopener noreferrer&quot;</code>.</p>
 <h3><a id="content--mentions--issues" href="index.html#content--mentions--issues" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>📌 <strong>Mentions &amp; Issues</strong></h3>
-<pre><code class="language-markdown">Hello @user, check issue #123.
+<pre><code class="line-numbers match-braces language-markdown">Hello @user, check issue #123.
 </code></pre>
 <p>Links to GitHub profiles and issues.</p>
 <h3><a id="content--embeds" href="index.html#content--embeds" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>🎥 <strong>Embeds</strong></h3>
-<pre><code class="language-markdown">https://www.youtube.com/watch?v=dQw4w9WgXcQ
+<pre><code class="line-numbers match-braces language-markdown">https://www.youtube.com/watch?v=dQw4w9WgXcQ
 </code></pre>
 <p>Automatically embeds videos.</p>
 <h2><a id="content-advanced-configuration" href="index.html#content-advanced-configuration" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Advanced Configuration</h2>
 <p>You can customize the behavior of Markdown processing by passing an options array to <code>MarkdownCreator</code>:</p>
-<pre><code class="language-php">$options = [
+<pre><code class="line-numbers match-braces language-php">$options = [
     'environment' =&gt; [
         'mentions' =&gt; [
             '@' =&gt; ['generator' =&gt; 'https://github.com/%s'],
@@ -113,7 +113,7 @@ $creator = new MarkdownCreator($options);
 </code></pre>
 <h2><a id="content-template-metadata-support" href="index.html#content-template-metadata-support" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Template Metadata Support</h2>
 <p>Markdown templates can include metadata in YAML format:</p>
-<pre><code class="language-markdown">---
+<pre><code class="line-numbers match-braces language-markdown">---
 __view_title: &quot;Markdown Template Guide&quot;
 ---
 </code></pre>

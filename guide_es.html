@@ -52,28 +52,28 @@
 <h2><a id="content-1-introducción-a-markdown" href="guide_es.html#content-1-introducción-a-markdown" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>1. Introducción a Markdown</h2>
 <p>Markdown es un lenguaje de marcado ligero que te permite escribir documentos en texto plano y convertirlos fácilmente en HTML. Su sintaxis simple lo convierte en una opción popular para la documentación, blogs, y otras aplicaciones web. Aquí te mostramos algunos ejemplos básicos de Markdown:</p>
 <h3><a id="content-encabezados" href="guide_es.html#content-encabezados" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Encabezados</h3>
-<pre><code class="language-markdown"># Título de Nivel 1
+<pre><code class="line-numbers match-braces language-markdown"># Título de Nivel 1
 
 ## Título de Nivel 2
 
 ### Título de Nivel 3
 </code></pre>
 <h3><a id="content-énfasis" href="guide_es.html#content-énfasis" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Énfasis</h3>
-<pre><code class="language-markdown">**Texto en negrita**
+<pre><code class="line-numbers match-braces language-markdown">**Texto en negrita**
 
 *Texto en cursiva*
 
 ~~Texto tachado~~
 </code></pre>
 <h3><a id="content-listas" href="guide_es.html#content-listas" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Listas</h3>
-<pre><code class="language-markdown">- Elemento de lista no ordenada
+<pre><code class="line-numbers match-braces language-markdown">- Elemento de lista no ordenada
 - Otro elemento
 
 1. Elemento de lista ordenada
 2. Otro elemento
 </code></pre>
 <h3><a id="content-enlaces-e-imágenes" href="guide_es.html#content-enlaces-e-imágenes" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Enlaces e Imágenes</h3>
-<pre><code class="language-markdown">[Enlace a Google](https://www.google.com)
+<pre><code class="line-numbers match-braces language-markdown">[Enlace a Google](https://www.google.com)
 
 ![Imagen alternativa](https://www.example.com/imagen.jpg)
 </code></pre>
@@ -83,22 +83,22 @@
 <p>GFM es una versión extendida de Markdown usada en GitHub, que añade características adicionales como tablas, listas de tareas, y bloques de código con sintaxis. Para usar GFM simplemente escribe tu contenido en Markdown, y la extensión se encargará del resto.</p>
 <h4><a id="content-ejemplos" href="guide_es.html#content-ejemplos" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplos:</h4>
 <p><strong>Listas de Tareas</strong>:</p>
-<pre><code class="language-markdown">- [x] Tarea completada
+<pre><code class="line-numbers match-braces language-markdown">- [x] Tarea completada
 - [ ] Tarea pendiente
 </code></pre>
 <p><strong>Tablas</strong>:</p>
-<pre><code class="language-markdown">| Encabezado 1 | Encabezado 2 |
+<pre><code class="line-numbers match-braces language-markdown">| Encabezado 1 | Encabezado 2 |
 | ------------ | ------------ |
 | Celda 1      | Celda 2      |
 </code></pre>
 <p><strong>Bloques de Código</strong>:</p>
-<pre><code class="language-markdown">```php
+<pre><code class="line-numbers match-braces language-markdown">```php
 echo &quot;Esto es código PHP&quot;;
 </code></pre>
 <h3><a id="content-22-tabla-de-contenidos-automática-toc" href="guide_es.html#content-22-tabla-de-contenidos-automática-toc" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.2. Tabla de Contenidos Automática (TOC)</h3>
 <p>La extensión de Tabla de Contenidos (TOC) permite generar automáticamente un índice basado en los encabezados de tu documento. Para incluir una tabla de contenidos, solo necesitas colocar <code>[TOC]</code> en el lugar donde quieras que aparezca.</p>
 <h4><a id="content-ejemplo" href="guide_es.html#content-ejemplo" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">[TOC]
+<pre><code class="line-numbers match-braces language-markdown">[TOC]
 
 ## Sección 1
 Contenido de la sección 1.
@@ -109,20 +109,20 @@ Contenido de la sección 2.
 <h3><a id="content-23-permalinks-en-encabezados" href="guide_es.html#content-23-permalinks-en-encabezados" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.3. Permalinks en Encabezados</h3>
 <p>Los permalinks permiten que los encabezados tengan un enlace permanente que los usuarios pueden copiar y compartir fácilmente. Una de las extensiones se encarga de generar estos permalinks automáticamente para todos los encabezados.</p>
 <h4><a id="content-ejemplo-1" href="guide_es.html#content-ejemplo-1" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">### Encabezado Importante
+<pre><code class="line-numbers match-braces language-markdown">### Encabezado Importante
 </code></pre>
 <p>Esto generará automáticamente el permalink <code>#content-encabezado-importante</code>.</p>
 <h3><a id="content-24-notas-al-pie" href="guide_es.html#content-24-notas-al-pie" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.4. Notas al Pie</h3>
 <p>Las notas al pie te permiten añadir referencias o aclaraciones sin interrumpir el flujo del texto. Usa la sintaxis <code>[^1]</code> para marcar una nota al pie y define su contenido en la parte inferior del documento.</p>
 <h4><a id="content-ejemplo-2" href="guide_es.html#content-ejemplo-2" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">Aquí hay una frase con una nota al pie[^1].
+<pre><code class="line-numbers match-braces language-markdown">Aquí hay una frase con una nota al pie[^1].
 
 [^1]: Esta es la nota al pie, que aparece al final del documento.
 </code></pre>
 <h3><a id="content-25-definiciones" href="guide_es.html#content-25-definiciones" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.5. Definiciones</h3>
 <p>Las listas de definiciones permiten crear glosarios o listas descriptivas fácilmente.</p>
 <h4><a id="content-ejemplo-3" href="guide_es.html#content-ejemplo-3" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">Término 1
+<pre><code class="line-numbers match-braces language-markdown">Término 1
 : Definición para el término 1.
 
 Término 2
@@ -131,24 +131,24 @@ Término 2
 <h3><a id="content-26-atributos-personalizados" href="guide_es.html#content-26-atributos-personalizados" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.6. Atributos Personalizados</h3>
 <p>Con esta extensión, puedes añadir atributos HTML personalizados a elementos específicos de Markdown.</p>
 <h4><a id="content-ejemplo-4" href="guide_es.html#content-ejemplo-4" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">### Encabezado con ID personalizado {.mi-clase-css}
+<pre><code class="line-numbers match-braces language-markdown">### Encabezado con ID personalizado {.mi-clase-css}
 </code></pre>
 <h3><a id="content-27-enlaces-externos" href="guide_es.html#content-27-enlaces-externos" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.7. Enlaces Externos</h3>
 <p>Puedes definir cómo manejar los enlaces externos. Puedes configurarlos para que se abran en una nueva ventana, añadir atributos como <code>nofollow</code>, y más.</p>
 <h4><a id="content-ejemplo-5" href="guide_es.html#content-ejemplo-5" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">[Enlace Externo](https://www.google.com)
+<pre><code class="line-numbers match-braces language-markdown">[Enlace Externo](https://www.google.com)
 </code></pre>
 <p>Esto generará un enlace que se abrirá en una nueva ventana con atributos adicionales como <code>rel=&quot;noopener noreferrer&quot;</code>.</p>
 <h3><a id="content-28-menciones" href="guide_es.html#content-28-menciones" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.8. Menciones</h3>
 <p>Las menciones te permiten enlazar, por defecto, a perfiles o <em>issues</em> de GitHub directamente desde Markdown.</p>
 <h4><a id="content-ejemplo-6" href="guide_es.html#content-ejemplo-6" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">Hola @usuario, por favor revisa esta issue #123.
+<pre><code class="line-numbers match-braces language-markdown">Hola @usuario, por favor revisa esta issue #123.
 </code></pre>
 <p>Esto generará enlaces a <code>https://github.com/usuario</code> y <code>https://github.com/derafu/markdown/issues/123</code>.</p>
 <h3><a id="content-29-embebidos" href="guide_es.html#content-29-embebidos" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>2.9. Embebidos</h3>
 <p>La extensión de embebidos permite insertar contenido de sitios como YouTube directamente en tu documento.</p>
 <h4><a id="content-ejemplo-7" href="guide_es.html#content-ejemplo-7" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Ejemplo:</h4>
-<pre><code class="language-markdown">https://www.youtube.com/watch?v=dQw4w9WgXcQ
+<pre><code class="line-numbers match-braces language-markdown">https://www.youtube.com/watch?v=dQw4w9WgXcQ
 </code></pre>
 <p>Esto incrustará el video de YouTube en lugar de solo mostrar el enlace.</p>
 <h2><a id="content-3-opciones-avanzadas" href="guide_es.html#content-3-opciones-avanzadas" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>3. Opciones Avanzadas</h2>
@@ -161,7 +161,7 @@ Término 2
 <h3><a id="content-asignación-de-las-opciones" href="guide_es.html#content-asignación-de-las-opciones" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>Asignación de las opciones</h3>
 <p>Debes debes asignar las opciones al crear el servicio <code>MarkdownCreator</code> pasando un arreglo con las opciones que desees modificar.</p>
 <p>Ejemplo:</p>
-<pre><code class="language-php">$options = [
+<pre><code class="line-numbers match-braces language-php">$options = [
     'environment' =&gt; [
         'mentions' =&gt; [
             '@' =&gt; [
@@ -182,7 +182,7 @@ $creator = new MarkdownCreator($options);
 <h2><a id="content-4-bloque-de-metadatos-de-la-plantilla" href="guide_es.html#content-4-bloque-de-metadatos-de-la-plantilla" class="text-decoration-none small text-muted" aria-hidden="true" title="Permalink"><i class="fa-solid fa-link"></i> </a>4. Bloque de Metadatos de la Plantilla</h2>
 <p>Las plantillas markdown permiten incluir un bloque de metadatos que se coloca al principio del archivo. El formato de estos metadatos es <code>YAML</code> y todas los índices que se definan serán pasados al layout que se renderice y estarán disponibles como variables extraídas en dicho layout.</p>
 <p>Ejemplo:</p>
-<pre><code class="language-markdown">---
+<pre><code class="line-numbers match-braces language-markdown">---
 __view_title: &quot;Guía de Uso de Plantillas Markdown&quot;
 ---
 </code></pre>
