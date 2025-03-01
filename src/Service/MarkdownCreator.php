@@ -17,6 +17,8 @@ use Embed\Embed;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
+use League\CommonMark\Extension\DefaultAttributes\DefaultAttributesExtension;
 use League\CommonMark\Extension\DescriptionList\DescriptionListExtension;
 use League\CommonMark\Extension\Embed\Bridge\OscaroteroEmbedAdapter;
 use League\CommonMark\Extension\Embed\EmbedExtension;
@@ -42,18 +44,19 @@ class MarkdownCreator implements MarkdownCreatorInterface
      */
     private $options = [
         'extensions' => [
-            CommonMarkCoreExtension::class,         // Core CommonMark support.
-            GithubFlavoredMarkdownExtension::class, // GitHub Flavored Markdown (GFM) support.
-            TableOfContentsExtension::class,        // Table of contents generation.
-            HeadingPermalinkExtension::class,       // Permalinks for headings.
-            FootnoteExtension::class,               // Footnotes support.
-            DescriptionListExtension::class,        // Description lists.
             AttributesExtension::class,             // Custom attributes for elements.
-            SmartPunctExtension::class,             // Smart punctuation handling.
-            ExternalLinkExtension::class,           // External link handling.
-            FrontMatterExtension::class,            // YAML Front Matter support.
-            MentionExtension::class,                // User and issue mention linking.
+            CommonMarkCoreExtension::class,         // Core CommonMark support.
+            DefaultAttributesExtension::class,      // Default HTML classes and other attributes.
+            DescriptionListExtension::class,        // Description lists.
             EmbedExtension::class,                  // Rich media embedding (videos, tweets, etc.).
+            ExternalLinkExtension::class,           // External link handling.
+            FootnoteExtension::class,               // Footnotes support.
+            FrontMatterExtension::class,            // YAML Front Matter support.
+            GithubFlavoredMarkdownExtension::class, // GitHub Flavored Markdown (GFM) support.
+            HeadingPermalinkExtension::class,       // Permalinks for headings.
+            MentionExtension::class,                // User and issue mention linking.
+            SmartPunctExtension::class,             // Smart punctuation handling.
+            TableOfContentsExtension::class,        // Table of contents generation.
         ],
         'environment' => [
             'table_of_contents' => [
@@ -102,6 +105,11 @@ class MarkdownCreator implements MarkdownCreatorInterface
                         'maxwidth' => 400,          // Maximum embed width
                         'maxheight' => 300,         // Maximum embed height
                     ],
+                ],
+            ],
+            'default_attributes' => [
+                FencedCode::class => [
+                    'class' => ['line-numbers', 'match-braces'],
                 ],
             ],
         ],
