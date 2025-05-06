@@ -28,18 +28,16 @@
         "php": "^8.3",
         "ext-dom": "*",
         "ext-libxml": "*",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "embed/embed": "^4.4",
+        "league/commonmark": "^2.6"
     },
     "require-dev": {
         "ext-xdebug": "*",
         "friendsofphp/php-cs-fixer": "^3.63",
         "phpstan/phpstan": "^1.12",
         "phpunit/phpunit": "^11.4",
-        "derafu/foundation": "dev-main",
-        "embed/embed": "^4.4",
-        "league/commonmark": "^2.6",
-        "nyholm/psr7": "^1.8",
-        "symfony/yaml": "^7.2"
+        "derafu/foundation": "dev-main"
     },
     "scripts": {
         "docs": "php tools/phpdocumentor run --config=phpdoc.xml",
