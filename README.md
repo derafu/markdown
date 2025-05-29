@@ -19,6 +19,10 @@
 - 📦 **Easy Integration**: Works standalone or within any PHP project.
 - 🏷 **MIT Licensed**: Open-source and free to use.
 
+> [!INFO] Admonition Extension
+>
+> This library includes an admonition extension to process common messages. For example: tip, info and warning.
+
 ## Installation
 
 Install via Composer:

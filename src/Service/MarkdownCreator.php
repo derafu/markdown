@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace Derafu\Markdown\Service;
 
 use Derafu\Markdown\Contract\MarkdownCreatorInterface;
+use Derafu\Markdown\Extension\Admonition\AdmonitionExtension;
 use Embed\Embed;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
@@ -44,6 +45,7 @@ class MarkdownCreator implements MarkdownCreatorInterface
      */
     private $options = [
         'extensions' => [
+            // From CommonMark.
             AttributesExtension::class,             // Custom attributes for elements.
             CommonMarkCoreExtension::class,         // Core CommonMark support.
             DefaultAttributesExtension::class,      // Default HTML classes and other attributes.
@@ -57,6 +59,8 @@ class MarkdownCreator implements MarkdownCreatorInterface
             MentionExtension::class,                // User and issue mention linking.
             SmartPunctExtension::class,             // Smart punctuation handling.
             TableOfContentsExtension::class,        // Table of contents generation.
+            // From Derafu.
+            AdmonitionExtension::class,             // Admonition support.
         ],
         'environment' => [
             'table_of_contents' => [
