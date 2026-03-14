@@ -91,8 +91,10 @@ class MarkdownService implements MarkdownServiceInterface
     /**
      * {@inheritDoc}
      */
-    public function renderFromString(string $markdownContent, array &$data = []): string
-    {
+    public function renderFromString(
+        string $markdownContent,
+        array &$data = []
+    ): string {
         $result = $this->getMarkdown()->convert($markdownContent);
         $content = $result->getContent();
 
@@ -145,7 +147,10 @@ class MarkdownService implements MarkdownServiceInterface
         }
 
         // Add extension if not present.
-        if (!str_ends_with($template, '.md') && !str_ends_with($template, '.markdown')) {
+        if (
+            !str_ends_with($template, '.md')
+            && !str_ends_with($template, '.markdown')
+        ) {
             $template .= '.md';
         }
 
@@ -207,7 +212,8 @@ class MarkdownService implements MarkdownServiceInterface
      *
      * @param string $layout The layout file path.
      * @return string The resolved absolute path.
-     * @throws InvalidArgumentException If the provided layout path is not absolute.
+     * @throws InvalidArgumentException If the provided layout path is not
+     * absolute.
      */
     private function resolveLayout(string $layout): string
     {

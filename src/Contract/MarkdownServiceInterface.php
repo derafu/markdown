@@ -39,7 +39,10 @@ interface MarkdownServiceInterface
      * allowing metadata extraction.
      * @return string The processed HTML output.
      */
-    public function renderFromString(string $markdownContent, array &$data = []): string;
+    public function renderFromString(
+        string $markdownContent,
+        array &$data = []
+    ): string;
 
     /**
      * Lazily retrieves the Markdown converter instance.
