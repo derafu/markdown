@@ -71,10 +71,11 @@ class MarkdownCreator implements MarkdownCreatorInterface
                 'placeholder' => '[TOC]',           // Placeholder text for TOC placement.
             ],
             'heading_permalink' => [
-                'html_class' => 'text-decoration-none small text-muted', // CSS class for permalinks.
-                'id_prefix' => 'content',           // Prefix for heading IDs.
-                'fragment_prefix' => 'content',     // Prefix for URL fragments.
-                'insert' => 'before',               // Position of the permalink (before heading).
+                'html_class' => 'heading-permalink text-decoration-none small text-muted', // CSS class for permalinks.
+                'heading_class' => 'heading-anchor', // CSS class for the headings, to show the permalink on hover.
+                'id_prefix' => '',                  // Prefix for heading IDs.
+                'fragment_prefix' => '',            // Prefix for URL fragments.
+                'insert' => 'after',                // Position of the permalink (after heading).
                 'title' => 'Permalink',             // Tooltip text.
                 'symbol' => '<i class="fa-solid fa-link"></i> ', // Symbol used for permalinks.
             ],

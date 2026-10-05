@@ -14,7 +14,7 @@ namespace Derafu\Markdown\Service;
 
 use Derafu\Markdown\Contract\MarkdownCreatorInterface;
 use Derafu\Markdown\Contract\MarkdownServiceInterface;
-use InvalidArgumentException;
+use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException as InvalidArgumentException;
 use League\CommonMark\Extension\FrontMatter\Output\RenderedContentWithFrontMatter;
 use League\CommonMark\MarkdownConverter;
 
@@ -98,21 +98,29 @@ class MarkdownService implements MarkdownServiceInterface
         $result = $this->getMarkdown()->convert($markdownContent);
         $content = $result->getContent();
 
-        $config = $this->getMarkdown()->getEnvironment()->getConfiguration();
         $content = '<div class="markdown-body">' . $content . '</div>';
-        $content = str_replace(
-            [
-                htmlspecialchars($config->get('heading_permalink')['symbol']),
-            ],
-            [
-                $config->get('heading_permalink')['symbol'],
-            ],
-            $content
-        );
+
+        // The symbol of the heading permalink is HTML (an icon), but
+        // CommonMark escapes it when it renders it. Restore it, if the
+        // converter has the permalinks.
+        $config = $this->getMarkdown()->getEnvironment()->getConfiguration();
+        if ($config->exists('heading_permalink/symbol')) {
+            $symbol = $config->get('heading_permalink/symbol');
+            $content = str_replace(htmlspecialchars($symbol), $symbol, $content);
+        }
 
         // Extract Front Matter metadata if available.
         if ($result instanceof RenderedContentWithFrontMatter) {
             $frontMatter = $result->getFrontMatter();
+
+            // The layout is a file that is included, so for now it can only be
+            // defined by who renders, not by the content that is rendered.
+            if (array_key_exists('__view_layout', $frontMatter)) {
+                throw new InvalidArgumentException(
+                    'Defining the layout with "__view_layout" in the front matter is not supported yet. Pass it in the data given to render() instead.'
+                );
+            }
+
             $data = array_merge($data, $frontMatter);
         }
 
@@ -140,9 +148,9 @@ class MarkdownService implements MarkdownServiceInterface
      */
     private function resolveTemplate(string $template): string
     {
-        // If absolute path, return as is.
-        $realpath = realpath($template);
-        if ($realpath) {
+        // If it is a path to an existing file (absolute, or relative to the
+        // working directory), return it as is.
+        if (is_file($template)) {
             return $template;
         }
 
@@ -152,6 +160,11 @@ class MarkdownService implements MarkdownServiceInterface
             && !str_ends_with($template, '.markdown')
         ) {
             $template .= '.md';
+
+            // The same path, with the extension.
+            if (is_file($template)) {
+                return $template;
+            }
         }
 
         // Search in configured paths.
@@ -162,10 +175,10 @@ class MarkdownService implements MarkdownServiceInterface
             }
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Template %s does not exists.',
-            $template
-        ));
+        throw new InvalidArgumentException([
+            'Template {template} does not exists.',
+            'template' => $template,
+        ]);
     }
 
     /**
@@ -196,9 +209,11 @@ class MarkdownService implements MarkdownServiceInterface
                 is_scalar($value)
                 || (is_object($value) && method_exists($value, '__toString'))
             ) {
-                $content = preg_replace(
+                // A callback, so the value is inserted as it is: a replacement
+                // string would interpret `$1` or `\1` in it.
+                $content = preg_replace_callback(
                     '/\{\{\s*' . preg_quote($key, '/') . '\s*\}\}/',
-                    $value,
+                    fn () => (string) $value,
                     $content
                 );
             }
@@ -222,24 +237,27 @@ class MarkdownService implements MarkdownServiceInterface
             return $layout;
         }
 
-        throw new InvalidArgumentException(sprintf(
-            'Invalid layout path: %s. It must be an absolute path.',
-            $layout
-        ));
+        throw new InvalidArgumentException([
+            'Invalid layout path: {layout}. It must be an absolute path.',
+            'layout' => $layout,
+        ]);
     }
 
     /**
      * Renders a PHP layout and injects the Markdown-generated content.
      *
-     * @param string $layout The absolute path to the layout file.
-     * @param array $data Data variables to be made available in the layout.
+     * @param string $__layout The absolute path to the layout file.
+     * @param array $__data Data variables to be made available in the layout.
      * @return string The final rendered HTML.
      */
-    private function renderLayout(string $layout, array $data): string
+    private function renderLayout(string $__layout, array $__data): string
     {
+        // EXTR_SKIP: a key of the data never replaces the variables of this
+        // method, so it can not change the layout that is included.
+        extract($__data, EXTR_SKIP);
+
         ob_start();
-        extract($data);
-        require $layout;
+        require $__layout;
 
         return ob_get_clean();
     }

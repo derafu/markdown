@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\Markdown\Extension\Admonition;
 
-use InvalidArgumentException;
+use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException as InvalidArgumentException;
 use League\CommonMark\Node\Block\Paragraph;
 use League\CommonMark\Node\Inline\Text;
 use League\CommonMark\Node\Node;
@@ -52,10 +52,10 @@ final class AdmonitionRenderer implements NodeRendererInterface
     public function render(Node $node, ChildNodeRendererInterface $childRenderer)
     {
         if (!($node instanceof Admonition)) {
-            throw new InvalidArgumentException(sprintf(
-                'Invalid node type: %s',
-                get_class($node)
-            ));
+            throw new InvalidArgumentException([
+                'Invalid node type: {type}',
+                'type' => get_class($node),
+            ]);
         }
 
         $type = $node->getType();

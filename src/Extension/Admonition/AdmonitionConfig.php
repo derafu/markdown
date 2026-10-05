@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\Markdown\Extension\Admonition;
 
-use InvalidArgumentException;
+use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException as InvalidArgumentException;
 
 /**
  * Admonition config.
@@ -124,10 +124,10 @@ final class AdmonitionConfig
         $requiredKeys = ['bootstrap_class', 'icon', 'title'];
         foreach ($requiredKeys as $key) {
             if (!isset($config[$key])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Missing required key: %s',
-                    $key
-                ));
+                throw new InvalidArgumentException([
+                    'Missing required key: {key}',
+                    'key' => $key,
+                ]);
             }
         }
 
