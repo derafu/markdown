@@ -32,15 +32,14 @@
         "embed/embed": "^4.4",
         "league/commonmark": "^2.8",
         "derafu/translation": "dev-main",
-        "psr/http-factory-implementation": "*"
+        "nyholm/psr7": "^1.8"
     },
     "require-dev": {
         "ext-xdebug": "*",
         "friendsofphp/php-cs-fixer": "^3.95",
         "phpstan/phpstan": "^2.2",
         "phpunit/phpunit": "^13.4",
-        "nikic/php-parser": "^5.9",
-        "nyholm/psr7": "^1.8"
+        "nikic/php-parser": "^5.9"
     },
     "suggest": {
         "nikic/php-parser": "Required by the tests of the messages of the package (Derafu\\Translation\\Lint reads the code)."
