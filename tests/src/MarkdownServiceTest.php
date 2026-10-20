@@ -16,6 +16,7 @@ use Derafu\Markdown\Contract\MarkdownCreatorInterface;
 use Derafu\Markdown\Extension\Admonition\AdmonitionConfig;
 use Derafu\Markdown\Extension\Admonition\AdmonitionExtension;
 use Derafu\Markdown\Extension\Admonition\AdmonitionRenderer;
+use Derafu\Markdown\Extension\Admonition\AdmonitionStartParser;
 use Derafu\Markdown\Service\MarkdownCreator;
 use Derafu\Markdown\Service\MarkdownService;
 use League\CommonMark\Environment\Environment;
@@ -31,6 +32,7 @@ use Stringable;
 #[UsesClass(AdmonitionExtension::class)]
 #[UsesClass(AdmonitionConfig::class)]
 #[UsesClass(AdmonitionRenderer::class)]
+#[UsesClass(AdmonitionStartParser::class)]
 class MarkdownServiceTest extends TestCase
 {
     private string $directory;
@@ -98,6 +100,9 @@ class MarkdownServiceTest extends TestCase
     public function testConverterWithoutHeadingPermalinks(): void
     {
         $creator = new class () implements MarkdownCreatorInterface {
+            /**
+             * @param array<string, mixed> $options
+             */
             public function create(array $options = []): MarkdownConverter
             {
                 $environment = new Environment();
@@ -111,6 +116,26 @@ class MarkdownServiceTest extends TestCase
         $html = (new MarkdownService($creator))->renderFromString("# Title\n", $data);
 
         $this->assertSame('<div class="markdown-body"><h1>Title</h1>' . "\n" . '</div>', $html);
+    }
+
+    public function testTheOptionsOfTheCreatorCanBeGivenInsteadOfTheCreator(): void
+    {
+        $service = new MarkdownService(['environment' => ['heading_permalink' => ['symbol' => '#']]]);
+        $data = [];
+
+        $html = $service->renderFromString("# Title\n", $data);
+
+        $this->assertStringContainsString('#</a>', $html);
+        $this->assertStringNotContainsString('fa-link', $html);
+    }
+
+    public function testAnEmptyFrontMatterKeepsTheData(): void
+    {
+        $data = ['kept' => 'yes'];
+        $html = (new MarkdownService())->renderFromString("---\n---\nBody\n", $data);
+
+        $this->assertSame(['kept' => 'yes'], $data);
+        $this->assertStringContainsString('Body', $html);
     }
 
     public function testFrontMatterIsMergedIntoTheData(): void

@@ -16,6 +16,8 @@ use League\CommonMark\Node\Block\AbstractBlock;
 
 /**
  * Admonition block node.
+ *
+ * Its children are the blocks of the content (paragraphs, lists, code...).
  */
 final class Admonition extends AbstractBlock
 {
@@ -30,8 +32,12 @@ final class Admonition extends AbstractBlock
 
     /**
      * Constructor.
+     *
+     * @param string $type Type of the admonition.
+     * @param string $title Title written in the line of the marker, or an
+     * empty string to use the default title of the type.
      */
-    public function __construct(string $type)
+    public function __construct(string $type, private readonly string $title = '')
     {
         parent::__construct();
         $this->type = strtolower($type);
@@ -45,5 +51,15 @@ final class Admonition extends AbstractBlock
     public function getType(): string
     {
         return $this->type;
+    }
+
+    /**
+     * Get the title written in the line of the marker.
+     *
+     * @return string The title, or an empty string if there is none.
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
     }
 }

@@ -14,6 +14,7 @@ namespace Derafu\Markdown\Service;
 
 use Derafu\Markdown\Contract\MarkdownCreatorInterface;
 use Derafu\Markdown\Extension\Admonition\AdmonitionExtension;
+use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException as InvalidArgumentException;
 use Embed\Embed;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Attributes\AttributesExtension;
@@ -23,6 +24,7 @@ use League\CommonMark\Extension\DefaultAttributes\DefaultAttributesExtension;
 use League\CommonMark\Extension\DescriptionList\DescriptionListExtension;
 use League\CommonMark\Extension\Embed\Bridge\OscaroteroEmbedAdapter;
 use League\CommonMark\Extension\Embed\EmbedExtension;
+use League\CommonMark\Extension\ExtensionInterface;
 use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
 use League\CommonMark\Extension\Footnote\FootnoteExtension;
 use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
@@ -39,11 +41,19 @@ use League\CommonMark\MarkdownConverter;
 class MarkdownCreator implements MarkdownCreatorInterface
 {
     /**
+     * A host name (letters, digits, hyphens and dots), or an IPv4 address.
+     *
+     * An IPv6 address is not one: CommonMark encodes the brackets of the URLs
+     * (`%5B`), so it would never match the host of a link.
+     */
+    private const HOST_PATTERN = '/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*$/i';
+
+    /**
      * Default options for the Markdown environment.
      *
-     * @var array
+     * @var array{extensions: list<class-string<ExtensionInterface>>, environment: array<string, mixed>}
      */
-    private $options = [
+    private array $options = [
         'extensions' => [
             // From CommonMark.
             AttributesExtension::class,             // Custom attributes for elements.
@@ -123,7 +133,8 @@ class MarkdownCreator implements MarkdownCreatorInterface
     /**
      * Constructor to initialize the Markdown converter with options.
      *
-     * @param array $options Configuration options for Markdown.
+     * @param array<string, mixed> $options Configuration options for Markdown.
+     * @throws InvalidArgumentException If an option is not valid.
      */
     public function __construct(array $options = [])
     {
@@ -138,8 +149,13 @@ class MarkdownCreator implements MarkdownCreatorInterface
         // Resolve options for creating the Markdown environment.
         $options = $this->resolveOptions($options);
 
-        // Create the environment with the resolved configuration.
-        $environment = new Environment($options['environment']);
+        // Create the environment with the resolved configuration. The host of
+        // the current request is the internal host of the links, unless the
+        // options say otherwise.
+        $environment = new Environment(array_replace_recursive(
+            $this->requestEnvironment(),
+            $options['environment']
+        ));
 
         // Register extensions for Markdown processing.
         foreach ($options['extensions'] as $extension) {
@@ -156,35 +172,136 @@ class MarkdownCreator implements MarkdownCreatorInterface
      * This method merges the default options with any user-provided settings,
      * ensuring that the environment is properly configured before use.
      *
-     * @param array $options User-defined options for customizing the Markdown environment.
-     * @return array The merged configuration options.
+     * The `extensions` of the user are added to the ones that are already
+     * there (an extension is never repeated), and the `environment` of the
+     * user is merged recursively over the one that is already there.
+     *
+     * @param array<string, mixed> $options User-defined options for customizing the Markdown environment.
+     * @return array{extensions: list<class-string<ExtensionInterface>>, environment: array<string, mixed>} The merged configuration options.
+     * @throws InvalidArgumentException If an option is not valid.
      */
     private function resolveOptions(array $options): array
     {
-        // Configure 'external_link' settings.
-        // Set the internal host dynamically based on the current HTTP request.
-        if (!empty($_SERVER['HTTP_HOST'])) {
-            $this->options['environment']['external_link']['internal_hosts'] =
-                $_SERVER['HTTP_HOST']
-            ;
-        }
-
         // Merge default options with user-provided options.
-        $options = array_replace_recursive($this->options, $options);
+        $extensions = array_values(array_unique([
+            ...$this->options['extensions'],
+            ...$this->validExtensions($options['extensions'] ?? []),
+        ]));
+        $environment = array_replace_recursive(
+            $this->options['environment'],
+            $this->stringKeyed($options['environment'] ?? [], 'environment')
+        );
 
         // Configure the 'embed' extension if settings are provided.
-        if (!empty($options['environment']['embed']['library'])) {
-            $embedLibrary = new Embed();
-            $embedLibrary->setSettings($options['environment']['embed']['library']);
-            $options['environment']['embed']['adapter'] =
-                new OscaroteroEmbedAdapter($embedLibrary)
-            ;
+        if (isset($environment['embed']) && is_array($environment['embed'])) {
+            $library = $this->stringKeyed($environment['embed']['library'] ?? [], 'environment.embed.library');
+            if ($library !== []) {
+                $embedLibrary = new Embed();
+                $embedLibrary->setSettings($library);
+                $environment['embed']['adapter'] =
+                    new OscaroteroEmbedAdapter($embedLibrary)
+                ;
+            }
+
+            // Remove the library settings after embedding configuration.
+            unset($environment['embed']['library']);
         }
 
-        // Remove the library settings after embedding configuration.
-        unset($options['environment']['embed']['library']);
-
         // Return the final resolved configuration.
-        return $options;
+        return ['extensions' => $extensions, 'environment' => $environment];
+    }
+
+    /**
+     * Configuration of the environment that comes from the current HTTP
+     * request: its host is the internal host of the links (the ones to it are
+     * not external links).
+     *
+     * It goes under the options, so an `internal_hosts` that was given always
+     * wins, and an empty list says that there are no internal hosts.
+     *
+     * The host is only the name, without the port (CommonMark compares the
+     * host of the link, which has none), and only if it is a valid name: the
+     * header of the request is not trusted, and CommonMark takes a value that
+     * starts with `/` as a regular expression.
+     *
+     * @return array<string, mixed>
+     */
+    private function requestEnvironment(): array
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? null;
+        if (!is_string($host)) {
+            return [];
+        }
+
+        $name = parse_url('//' . $host, PHP_URL_HOST);
+        if (!is_string($name) || preg_match(self::HOST_PATTERN, $name) !== 1) {
+            return [];
+        }
+
+        return ['external_link' => ['internal_hosts' => $name]];
+    }
+
+    /**
+     * Checks the extensions that the user gives.
+     *
+     * @return list<class-string<ExtensionInterface>>
+     * @throws InvalidArgumentException If it is not a list of classes that
+     * implement the interface of the extensions.
+     */
+    private function validExtensions(mixed $extensions): array
+    {
+        if (!is_array($extensions)) {
+            throw new InvalidArgumentException([
+                'The option {option} must be an array; {type} given.',
+                'option' => 'extensions',
+                'type' => get_debug_type($extensions),
+            ]);
+        }
+
+        $valid = [];
+        foreach ($extensions as $extension) {
+            if (!is_string($extension) || !is_a($extension, ExtensionInterface::class, true)) {
+                throw new InvalidArgumentException([
+                    'The extension {extension} must be a class that implements {interface}.',
+                    'extension' => is_string($extension) ? $extension : get_debug_type($extension),
+                    'interface' => ExtensionInterface::class,
+                ]);
+            }
+            $valid[] = $extension;
+        }
+
+        return $valid;
+    }
+
+    /**
+     * Checks that an option is an array with names as keys.
+     *
+     * @return array<string, mixed>
+     * @throws InvalidArgumentException If it is not an array, or if it has a
+     * key that is not a name.
+     */
+    private function stringKeyed(mixed $value, string $option): array
+    {
+        if (!is_array($value)) {
+            throw new InvalidArgumentException([
+                'The option {option} must be an array; {type} given.',
+                'option' => $option,
+                'type' => get_debug_type($value),
+            ]);
+        }
+
+        $valid = [];
+        foreach ($value as $key => $item) {
+            if (!is_string($key)) {
+                throw new InvalidArgumentException([
+                    'The keys of the option {option} must be names; {key} given.',
+                    'option' => $option,
+                    'key' => $key,
+                ]);
+            }
+            $valid[$key] = $item;
+        }
+
+        return $valid;
     }
 }

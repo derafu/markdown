@@ -19,6 +19,10 @@ use League\CommonMark\Parser\MarkdownParserStateInterface;
 
 /**
  * Admonition start parser.
+ *
+ * It starts with a line like `> [!TYPE]`, optionally followed by a title. It
+ * must be registered before the one of the block quotes, which would take the
+ * line.
  */
 final class AdmonitionStartParser implements BlockStartParserInterface
 {
@@ -33,30 +37,19 @@ final class AdmonitionStartParser implements BlockStartParserInterface
         Cursor $cursor,
         MarkdownParserStateInterface $parserState
     ): ?BlockStart {
-        if ($cursor->isIndented()) {
+        if ($cursor->isIndented() || $cursor->getNextNonSpaceCharacter() !== '>') {
             return BlockStart::none();
         }
 
-        $currentLine = $cursor->getLine();
-        $trimmedLine = trim($currentLine);
-
-        if (!str_starts_with($trimmedLine, '> [!')) {
+        if (!preg_match('/^\s*>\s*\[!(\w+)\][ \t]*(.*)$/', $cursor->getRemainder(), $matches)) {
             return BlockStart::none();
         }
 
-        if (preg_match('/^>\s*\[!(\w+)\]\s*(.*)$/i', $currentLine, $matches)) {
-            $type = strtolower($matches[1]);
-            $content = trim($matches[2]);
+        // The line of the marker has nothing else: the title was read.
+        $cursor->advanceToEnd();
 
-            $cursor->advanceToEnd();
-
-            $parser = new AdmonitionContinueParser($type, $content);
-            return BlockStart::of($parser)
-                ->at($cursor)
-                ->replaceActiveBlockParser()
-            ;
-        }
-
-        return BlockStart::none();
+        return BlockStart::of(new AdmonitionContinueParser($matches[1], trim($matches[2])))
+            ->at($cursor)
+        ;
     }
 }

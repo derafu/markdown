@@ -13,12 +13,11 @@ declare(strict_types=1);
 namespace Derafu\Markdown\Extension\Admonition;
 
 use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException as InvalidArgumentException;
-use League\CommonMark\Node\Block\Paragraph;
-use League\CommonMark\Node\Inline\Text;
 use League\CommonMark\Node\Node;
 use League\CommonMark\Renderer\ChildNodeRendererInterface;
 use League\CommonMark\Renderer\NodeRendererInterface;
 use League\CommonMark\Util\HtmlElement;
+use League\CommonMark\Util\Xml;
 
 /**
  * Admonition renderer.
@@ -45,6 +44,9 @@ final class AdmonitionRenderer implements NodeRendererInterface
     /**
      * Render the admonition.
      *
+     * The title is the one of the marker line, or the default one of the type.
+     * The body is the content, whatever blocks it has.
+     *
      * @param Node $node
      * @param ChildNodeRendererInterface $childRenderer
      * @return HtmlElement
@@ -60,74 +62,25 @@ final class AdmonitionRenderer implements NodeRendererInterface
 
         $type = $node->getType();
         $typeConfig = $this->config->getConfig($type);
+        $title = $node->getTitle() !== '' ? $node->getTitle() : $typeConfig['title'];
 
-        $children = iterator_to_array($node->children());
-        $firstChild = reset($children);
+        $titleElement = new HtmlElement(
+            'div',
+            ['class' => 'admonition-title lead mb-2 text-uppercase'],
+            new HtmlElement('i', ['class' => $typeConfig['icon'], 'aria-hidden' => 'true']) . ' ' .
+            new HtmlElement('strong', [], Xml::escape($title))
+        );
 
-        if ($firstChild instanceof Paragraph) {
-            $firstContent = $childRenderer->renderNodes($firstChild->children());
-            $parts = explode("\n", $firstContent, 2);
-            $firstLine = trim($parts[0]);
+        $contentElement = new HtmlElement(
+            'div',
+            ['class' => 'admonition-body'],
+            $childRenderer->renderNodes($node->children())
+        );
 
-            // If the first line is empty or is [!TYPE], use the default title.
-            if (empty($firstLine) || preg_match('/^\[![\w-]+\]$/', $firstLine)) {
-                $title = $typeConfig['title'];
-                array_shift($children); // Remove the first line that contains the type.
-            } else {
-                // If the first line is the type of admonition.
-                if (preg_match('/^\[![\w-]+\]\s*(.*)$/', $firstLine, $matches)) {
-                    $title = !empty($matches[1]) ? $matches[1] : $typeConfig['title'];
-                    array_shift($children); // Remove the first line that contains the type and title.
-
-                    // If there is content after the title on the same line, create a new paragraph.
-                    if (isset($parts[1])) {
-                        $newParagraph = new Paragraph();
-                        $newParagraph->appendChild(new Text($parts[1]));
-                        array_unshift($children, $newParagraph);
-                    }
-                } else {
-                    $title = $firstLine;
-                    array_shift($children); // Remove the first line that contains the title.
-                }
-            }
-
-            // Process the content.
-            $contentHtml = '';
-            foreach ($children as $child) {
-                $rendered = $childRenderer->renderNodes([$child]);
-                if (!empty(trim(strip_tags($rendered)))) {
-                    if (!empty($contentHtml)) {
-                        $contentHtml .= "\n";
-                    }
-                    $contentHtml .= $rendered;
-                }
-            }
-
-            $titleElement = new HtmlElement(
-                'div',
-                ['class' => 'admonition-title lead mb-2 text-uppercase'],
-                new HtmlElement('i', ['class' => $typeConfig['icon'], 'aria-hidden' => 'true']) . ' ' .
-                new HtmlElement('strong', [], $title)
-            );
-
-            $contentElement = new HtmlElement(
-                'div',
-                ['class' => 'admonition-body'],
-                $contentHtml
-            );
-
-            return new HtmlElement(
-                'div',
-                ['class' => ['alert', $typeConfig['bootstrap_class'], 'admonition', 'admonition-' . $type]],
-                $titleElement . "\n" . $contentElement
-            );
-        }
-
-        // Fallback if there is no expected structure.
         return new HtmlElement(
             'div',
             ['class' => ['alert', $typeConfig['bootstrap_class'], 'admonition', 'admonition-' . $type]],
-            $childRenderer->renderNodes($node->children())
+            $titleElement . "\n" . $contentElement
         );
     }
 }

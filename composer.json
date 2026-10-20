@@ -29,15 +29,15 @@
         "ext-dom": "*",
         "ext-libxml": "*",
         "ext-mbstring": "*",
-        "embed/embed": "^4.4",
-        "league/commonmark": "^2.8",
+        "embed/embed": "^4.5",
+        "league/commonmark": "^2.10",
         "derafu/translation": "dev-main",
         "nyholm/psr7": "^1.8"
     },
     "require-dev": {
         "ext-xdebug": "*",
         "friendsofphp/php-cs-fixer": "^3.95",
-        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan": "^2.3",
         "phpunit/phpunit": "^13.4",
         "nikic/php-parser": "^5.9"
     },

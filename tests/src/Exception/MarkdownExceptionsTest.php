@@ -20,6 +20,7 @@ use Derafu\Markdown\Extension\Admonition\AdmonitionRenderer;
 use Derafu\Markdown\Service\MarkdownCreator;
 use Derafu\Markdown\Service\MarkdownService;
 use Derafu\Translation\Contract\TranslatableInterface;
+use Derafu\Translation\Exception\Core\TranslatableRuntimeException;
 use InvalidArgumentException;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -52,6 +53,9 @@ final class MarkdownExceptionsTest extends TestCase
     private function creator(): MarkdownCreatorInterface
     {
         return new class () implements MarkdownCreatorInterface {
+            /**
+             * @param array<string, mixed> $options
+             */
             public function create(array $options = []): MarkdownConverter
             {
                 $environment = new Environment(['heading_permalink' => ['symbol' => '#']]);
@@ -96,6 +100,14 @@ final class MarkdownExceptionsTest extends TestCase
                 },
                 'Invalid layout path: layout.php. It must be an absolute path.',
             ],
+            'layout that is not a string' => [
+                function (self $test) {
+                    $data = ['__view_layout' => ['layout.php']];
+
+                    return (new MarkdownService($test->creator(), [$test->directory]))->render('page.md', $data);
+                },
+                'Invalid layout path: array. It must be an absolute path.',
+            ],
             'layout in the front matter' => [
                 function () {
                     $data = [];
@@ -103,6 +115,38 @@ final class MarkdownExceptionsTest extends TestCase
                     return (new MarkdownService())->renderFromString("---\n__view_layout: /some/layout.php\n---\nBody", $data);
                 },
                 'Defining the layout with "__view_layout" in the front matter is not supported yet. Pass it in the data given to render() instead.',
+            ],
+            'front matter that is a string' => [
+                function () {
+                    $data = [];
+
+                    return (new MarkdownService())->renderFromString("---\njust a string\n---\nBody", $data);
+                },
+                'The front matter must be a map of names to values; string given.',
+            ],
+            'front matter that is a number' => [
+                function () {
+                    $data = [];
+
+                    return (new MarkdownService())->renderFromString("---\n42\n---\nBody", $data);
+                },
+                'The front matter must be a map of names to values; int given.',
+            ],
+            'front matter that is a list' => [
+                function () {
+                    $data = [];
+
+                    return (new MarkdownService())->renderFromString("---\n- one\n- two\n---\nBody", $data);
+                },
+                'The front matter must be a map of names to values; the key 0 is not a name.',
+            ],
+            'front matter with numbers as keys' => [
+                function () {
+                    $data = [];
+
+                    return (new MarkdownService())->renderFromString("---\n1: one\n2: two\n---\nBody", $data);
+                },
+                'The front matter must be a map of names to values; the key 1 is not a name.',
             ],
             'admonition type without a key' => [
                 fn (self $test) => (new AdmonitionConfig())->addType('custom', []),
@@ -134,5 +178,63 @@ final class MarkdownExceptionsTest extends TestCase
         $this->assertInstanceOf(InvalidArgumentException::class, $exception);
         $this->assertInstanceOf(TranslatableInterface::class, $exception);
         $this->assertSame($message, $exception->getMessage());
+    }
+
+    public function testATemplateThatCanNotBeReadIsReported(): void
+    {
+        $file = $this->directory . '/secret.md';
+        file_put_contents($file, '# Secret');
+        chmod($file, 0);
+        if (is_readable($file)) {
+            $this->markTestSkipped('The permissions of the file are not enforced (root).');
+        }
+
+        // PHP also warns that it could not open the file.
+        set_error_handler(static fn (): bool => true, E_WARNING);
+        try {
+            (new MarkdownService($this->creator(), [$this->directory]))->render('secret.md');
+            $this->fail('A template that can not be read must be reported.');
+        } catch (TranslatableRuntimeException $exception) {
+            $this->assertSame('Template ' . $file . ' could not be read.', $exception->getMessage());
+        } finally {
+            restore_error_handler();
+            chmod($file, 0644);
+        }
+    }
+
+    public function testATemplateThatTheRegularExpressionCanNotProcessIsReported(): void
+    {
+        file_put_contents($this->directory . '/greeting.md', "# {{ title }}\n\nSome text so the expression has to look for the placeholder.\n");
+
+        $limits = $this->limitTheRegularExpressions();
+        try {
+            $data = ['title' => 'Hello'];
+            (new MarkdownService($this->creator(), [$this->directory]))->render('greeting.md', $data);
+            $this->fail('A template that can not be processed must be reported.');
+        } catch (TranslatableRuntimeException $exception) {
+            $this->assertStringStartsWith('The template could not be processed: ', $exception->getMessage());
+        } finally {
+            $this->restoreTheRegularExpressions($limits);
+        }
+    }
+
+    /**
+     * Makes the regular expressions fail when they have to backtrack, with an
+     * error of PCRE (`preg_*` functions return `null`).
+     *
+     * @return array{string|false, string|false}
+     */
+    private function limitTheRegularExpressions(): array
+    {
+        return [ini_set('pcre.jit', '0'), ini_set('pcre.backtrack_limit', '1')];
+    }
+
+    /**
+     * @param array{string|false, string|false} $limits
+     */
+    private function restoreTheRegularExpressions(array $limits): void
+    {
+        ini_set('pcre.jit', (string) $limits[0]);
+        ini_set('pcre.backtrack_limit', (string) $limits[1]);
     }
 }

@@ -26,7 +26,7 @@ interface MarkdownCreatorInterface
      * configured extensions, and returns a ready-to-use Markdown converter
      * instance.
      *
-     * @param array $options Additional options for Markdown conversion.
+     * @param array<string, mixed> $options Additional options for Markdown conversion.
      * @return MarkdownConverter The configured Markdown converter instance.
      */
     public function create(array $options = []): MarkdownConverter;

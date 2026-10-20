@@ -20,8 +20,12 @@ use Derafu\Markdown\Extension\Admonition\AdmonitionRenderer;
 use Derafu\Markdown\Extension\Admonition\AdmonitionStartParser;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\CommonMark\Node\Block\ThematicBreak;
 use League\CommonMark\MarkdownConverter;
+use League\CommonMark\Node\Block\Document;
+use League\CommonMark\Renderer\HtmlRenderer;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -166,6 +170,7 @@ MARKDOWN;
 
             $html = $this->converter->convert($markdown)->getContent();
             $this->assertStringContainsString($expectedClass, $html, "Admonition type '{$type}' should use class '{$expectedClass}'");
+            $this->assertStringContainsString('<p>Content</p>', $html, "Admonition type '{$type}' should keep its content");
         }
     }
 
@@ -276,9 +281,177 @@ HTML;
         );
     }
 
+    public function testAMarkerThatIsIndentedIsACodeBlock(): void
+    {
+        $html = $this->converter->convert("    > [!NOTE]\n    > text\n")->getContent();
+
+        $this->assertStringContainsString('<pre><code>&gt; [!NOTE]', $html);
+        $this->assertStringNotContainsString('admonition', $html);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function notMarkers(): array
+    {
+        return [
+            'without the type' => ["> [!]\n> text\n"],
+            'without the closing bracket' => ["> [!NOTE\n> text\n"],
+            'a quote' => ["> just a quote\n"],
+        ];
+    }
+
+    #[DataProvider('notMarkers')]
+    public function testWhatIsNotAMarkerStaysAsABlockquote(string $markdown): void
+    {
+        $html = $this->converter->convert($markdown)->getContent();
+
+        $this->assertStringStartsWith('<blockquote>', $html);
+        $this->assertStringNotContainsString('admonition', $html);
+    }
+
+    public function testAnAdmonitionEndsWhenTheQuoteEnds(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n>\n> Inside.\n\nOutside.\n")->getContent();
+
+        $this->assertStringContainsString('<div class="admonition-body"><p>Inside.</p></div>', $html);
+        $this->assertStringEndsWith("</div>\n<p>Outside.</p>\n", $html);
+    }
+
+    public function testAnAdmonitionBuiltByOtherCodeRendersItsChildrenWithTheDefaultTitle(): void
+    {
+        // The nodes can be built by other code, not only by the parser.
+        $document = new Document();
+        $admonition = new Admonition('tip');
+        $admonition->appendChild(new ThematicBreak());
+        $document->appendChild($admonition);
+        $environment = new Environment();
+        $environment->addExtension(new CommonMarkCoreExtension());
+        $environment->addExtension(new AdmonitionExtension());
+
+        $html = (new HtmlRenderer($environment))->renderDocument($document)->getContent();
+
+        $this->assertStringContainsString('class="alert alert-success admonition admonition-tip"', $html);
+        $this->assertStringContainsString('<strong>Tip</strong>', $html);
+        $this->assertStringContainsString('<div class="admonition-body"><hr /></div>', $html);
+    }
+
+    /**
+     * The content can come right after the marker, as in GitHub, or after an
+     * empty line: the HTML is the same.
+     *
+     * @return array<string, array{string, string}>
+     */
+    public static function withAndWithoutTheEmptyLine(): array
+    {
+        return [
+            'a line' => ["> [!NOTE]\n> Text.\n", "> [!NOTE]\n>\n> Text.\n"],
+            'two lines' => ["> [!NOTE]\n> One.\n> Two.\n", "> [!NOTE]\n>\n> One.\n> Two.\n"],
+            'a title' => ["> [!TIP] The title\n> Text.\n", "> [!TIP] The title\n>\n> Text.\n"],
+            'two paragraphs' => ["> [!NOTE]\n> One.\n>\n> Two.\n", "> [!NOTE]\n>\n> One.\n>\n> Two.\n"],
+            'a list' => ["> [!NOTE]\n> - a\n> - b\n", "> [!NOTE]\n>\n> - a\n> - b\n"],
+            'code' => ["> [!NOTE]\n> ```php\n> echo 1;\n> ```\n", "> [!NOTE]\n>\n> ```php\n> echo 1;\n> ```\n"],
+            'a heading' => ["> [!NOTE]\n> ## Section\n> Text.\n", "> [!NOTE]\n>\n> ## Section\n> Text.\n"],
+        ];
+    }
+
+    #[DataProvider('withAndWithoutTheEmptyLine')]
+    public function testTheEmptyLineAfterTheMarkerDoesNotChangeTheHtml(string $without, string $with): void
+    {
+        $html = $this->converter->convert($without)->getContent();
+
+        $this->assertSame($html, $this->converter->convert($with)->getContent());
+        // Nothing between the title and the content: no empty paragraph.
+        $this->assertStringNotContainsString('<p></p>', $html);
+        $this->assertStringContainsString('</div>' . "\n" . '<div class="admonition-body"><', $html);
+    }
+
+    public function testTheContentRightAfterTheMarkerIsTheBody(): void
+    {
+        $html = $this->converter->convert("> [!WARNING]\n> First line.\n> Second **line**.\n")->getContent();
+
+        $this->assertSame(
+            $this->normalizeHtml(<<<'HTML'
+<div class="alert alert-warning admonition admonition-warning">
+<div class="admonition-title lead mb-2 text-uppercase"><i class="fa-solid fa-triangle-exclamation fa-fw" aria-hidden="true"></i> <strong>Warning</strong></div>
+<div class="admonition-body"><p>First line.
+Second <strong>line</strong>.</p></div>
+</div>
+HTML),
+            $this->normalizeHtml($html)
+        );
+    }
+
+    public function testTheTitleOfTheMarkerLineIsEscaped(): void
+    {
+        $html = $this->converter->convert("> [!NOTE] A <b>bold</b> & more\n> Text.\n")->getContent();
+
+        $this->assertStringContainsString('<strong>A &lt;b&gt;bold&lt;/b&gt; &amp; more</strong>', $html);
+    }
+
+    public function testAQuoteInsideTheAdmonitionIsAQuote(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n> Text.\n> > Quoted.\n")->getContent();
+
+        $this->assertStringContainsString('<div class="admonition-body"><p>Text.</p>' . "\n" . '<blockquote>', $html);
+        $this->assertStringContainsString('<p>Quoted.</p>', $html);
+    }
+
+    public function testALineThatContinuesTheParagraphWithoutTheMarkerStaysInTheAdmonition(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n> Text\ncontinues here.\n")->getContent();
+
+        $this->assertStringContainsString("<p>Text\ncontinues here.</p>", $html);
+    }
+
+    public function testASecondMarkerInTheContentIsPlainText(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n> [!TIP] Not a title.\n")->getContent();
+
+        $this->assertStringContainsString('<strong>Note</strong>', $html);
+        $this->assertStringContainsString('<p>[!TIP] Not a title.</p>', $html);
+    }
+
+    public function testAnAdmonitionCanBeInsideAListItemOrAQuote(): void
+    {
+        $inList = $this->converter->convert("- Item\n\n  > [!TIP]\n  > Inside the item.\n")->getContent();
+        $inQuote = $this->converter->convert("> > [!TIP]\n> > Inside the quote.\n")->getContent();
+
+        $this->assertStringContainsString('admonition-tip', $inList);
+        $this->assertStringContainsString('<p>Inside the item.</p>', $inList);
+        $this->assertStringContainsString('<blockquote>', $inQuote);
+        $this->assertStringContainsString('admonition-tip', $inQuote);
+        $this->assertStringContainsString('<p>Inside the quote.</p>', $inQuote);
+    }
+
+    public function testTwoAdmonitionsOneAfterTheOtherAreSeparate(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n> One.\n\n> [!TIP]\n> Two.\n")->getContent();
+
+        $this->assertSame(1, substr_count($html, 'admonition-note'));
+        $this->assertSame(1, substr_count($html, 'admonition-tip'));
+        $this->assertStringContainsString('<p>One.</p></div></div>', $html);
+        $this->assertStringContainsString('<p>Two.</p></div></div>', $html);
+    }
+
+    public function testAnAdmonitionWithOnlyTheMarkerHasAnEmptyBody(): void
+    {
+        $html = $this->converter->convert("> [!NOTE]\n")->getContent();
+
+        $this->assertStringContainsString('<div class="admonition-body"></div>', $html);
+    }
+
+    public function testAMarkerWithoutASpaceAfterTheQuoteIsAMarker(): void
+    {
+        $html = $this->converter->convert(">[!NOTE]\n>Text.\n")->getContent();
+
+        $this->assertStringContainsString('admonition-note', $html);
+        $this->assertStringContainsString('<p>Text.</p>', $html);
+    }
+
     private function normalizeHtml(string $html): string
     {
         // Remove whitespace and line breaks.
-        return preg_replace('/\s+/', '', trim($html));
+        return preg_replace('/\s+/', '', trim($html)) ?? '';
     }
 }

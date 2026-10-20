@@ -44,7 +44,8 @@ final class AdmonitionExtension implements ExtensionInterface
      */
     public function register(EnvironmentBuilderInterface $environment): void
     {
-        $environment->addBlockStartParser(new AdmonitionStartParser());
+        // Before the block quote (70), which would take the lines.
+        $environment->addBlockStartParser(new AdmonitionStartParser(), 80);
         $environment->addRenderer(
             Admonition::class,
             new AdmonitionRenderer($this->config)
