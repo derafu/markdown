@@ -4,12 +4,27 @@
 #   imports:
 #       - { resource: '../vendor/derafu/markdown/resources/config/markdown-services.yaml' }
 
+parameters:
+    derafu.markdown.options: {}
+    derafu.markdown.paths: []
+
 services:
 
     _defaults:
         autowire: true
         autoconfigure: true
         public: false
+
+    Derafu\Markdown\Contract\MarkdownCreatorInterface:
+        class: Derafu\Markdown\Service\MarkdownCreator
+        arguments:
+            $options: '%derafu.markdown.options%'
+
+    Derafu\Markdown\Contract\MarkdownServiceInterface:
+        class: Derafu\Markdown\Service\MarkdownService
+        arguments:
+            $markdownCreator: '@Derafu\Markdown\Contract\MarkdownCreatorInterface'
+            $paths: '%derafu.markdown.paths%'
 
     # Feeds resources/translations into the consuming app's Translator (the
     # app must pass $resourceProviders: !tagged_iterator

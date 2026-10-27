@@ -12,63 +12,105 @@ declare(strict_types=1);
 
 namespace Derafu\TestsMarkdown;
 
+use Derafu\Markdown\Contract\MarkdownCreatorInterface;
+use Derafu\Markdown\Contract\MarkdownServiceInterface;
 use Derafu\Markdown\Extension\Admonition\AdmonitionConfig;
 use Derafu\Markdown\Translation\MarkdownTranslationResourceProvider;
 use Derafu\Translation\Exception\Logic\TranslatableInvalidArgumentException;
-use Derafu\Translation\TranslatorFactory;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Argument\TaggedIteratorArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
-use Symfony\Component\Translation\Translator;
+use Symfony\Component\DependencyInjection\ServiceLocator;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * Loads the real provider configuration and consumes its tagged resources.
+ * Loads the package's actual configuration through YAML consumer fixtures.
  */
 #[CoversNothing]
 final class ServicesTest extends TestCase
 {
-    private function container(): ContainerBuilder
+    /** @return ServiceLocator<object> */
+    private function container(string $configuration = 'services.yaml'): ServiceLocator
     {
-        $root = dirname(__DIR__, 2);
         $container = new ContainerBuilder();
-        $loader = new YamlFileLoader($container, new FileLocator($root . '/resources/config'));
-        $loader->load('markdown-services.yaml');
-        $this->assertArrayHasKey(
+        $container->setParameter('kernel.project_dir', dirname(__DIR__, 2));
+        $loader = new YamlFileLoader($container, new FileLocator(dirname(__DIR__) . '/fixtures/services'));
+        $loader->load($configuration);
+        self::assertArrayHasKey(
             MarkdownTranslationResourceProvider::class,
             $container->findTaggedServiceIds('derafu_translation.resource_provider')
         );
-        $container->register('app.translator', Translator::class)
-            ->setFactory([TranslatorFactory::class, 'create'])
-            ->setArguments(['es', ['en'], new TaggedIteratorArgument('derafu_translation.resource_provider')]);
-        foreach ($container->getDefinitions() as $definition) {
-            $definition->setPublic(true);
-        }
         $container->compile();
+        $services = $container->get('test.markdown_services');
+        self::assertInstanceOf(ServiceLocator::class, $services);
 
-        return $container;
+        return $services;
+    }
+
+    public function testConfigurationConstructsEveryDeclaredPackageService(): void
+    {
+        $services = $this->container();
+        $creator = $services->get(MarkdownCreatorInterface::class);
+        self::assertInstanceOf(MarkdownCreatorInterface::class, $creator);
+        self::assertSame("<p><strong>Creator</strong></p>\n", $creator->create()->convert('**Creator**')->getContent());
+        $markdown = $services->get(MarkdownServiceInterface::class);
+        self::assertInstanceOf(MarkdownServiceInterface::class, $markdown);
+        self::assertSame('<div class="markdown-body"><p><strong>Service</strong></p>' . "\n</div>", $markdown->renderFromString('**Service**'));
+        self::assertSame($markdown->getMarkdown(), $markdown->getMarkdown());
+    }
+
+    public function testConfiguredOptionsReachBothTheCreatorAndTheActualMarkdownService(): void
+    {
+        $services = $this->container('configured.yaml');
+        $creator = $services->get(MarkdownCreatorInterface::class);
+        self::assertInstanceOf(MarkdownCreatorInterface::class, $creator);
+        $markdown = $services->get(MarkdownServiceInterface::class);
+        self::assertInstanceOf(MarkdownServiceInterface::class, $markdown);
+        $input = "# Configured heading\n\n<b>Raw HTML</b>";
+        foreach ([$creator->create()->convert($input)->getContent(), $markdown->renderFromString($input)] as $html) {
+            self::assertStringContainsString('class="configured-permalink"', $html);
+            self::assertStringContainsString('>#</a>', $html);
+            self::assertStringNotContainsString('<b>', $html);
+            self::assertStringContainsString('Raw HTML', $html);
+        }
+    }
+
+    public function testConfiguredPathsLoadARealTemplateBindDataAndExtractFrontMatter(): void
+    {
+        $markdown = $this->container('configured.yaml')->get(MarkdownServiceInterface::class);
+        self::assertInstanceOf(MarkdownServiceInterface::class, $markdown);
+        $data = ['name' => 'Reader'];
+        $html = $markdown->render('article', $data);
+        self::assertStringContainsString('Hello Reader', $html);
+        self::assertStringContainsString('<strong>real Markdown</strong>', $html);
+        self::assertStringContainsString('class="configured-permalink"', $html);
+        self::assertSame('Service fixture', $data['title']);
+        self::assertSame('Reader', $data['name']);
     }
 
     public function testConfigurationConstructsTheTranslationProvider(): void
     {
         $provider = $this->container()->get(MarkdownTranslationResourceProvider::class);
-        $this->assertInstanceOf(MarkdownTranslationResourceProvider::class, $provider);
+        self::assertInstanceOf(MarkdownTranslationResourceProvider::class, $provider);
         $directories = [...$provider->getDirectories()];
-        $this->assertCount(1, $directories);
-        $this->assertSame(realpath(dirname(__DIR__, 2) . '/resources/translations'), realpath($directories[0]));
+        self::assertCount(1, $directories);
+        self::assertSame(realpath(dirname(__DIR__, 2) . '/resources/translations'), realpath($directories[0]));
     }
 
     public function testTaggedResourcesTranslateARealAdmonitionConfigurationException(): void
     {
-        $translator = $this->container()->get('app.translator');
-        $this->assertInstanceOf(Translator::class, $translator);
+        $services = $this->container();
+        $translator = $services->get(TranslatorInterface::class);
+        self::assertInstanceOf(TranslatorInterface::class, $translator);
+        $configuration = $services->get('admonition_config');
+        self::assertInstanceOf(AdmonitionConfig::class, $configuration);
         try {
-            (new AdmonitionConfig())->addType('custom', []);
-            $this->fail('An incomplete admonition configuration was accepted.');
+            $configuration->addType('custom', []);
+            self::fail('An incomplete admonition configuration was accepted.');
         } catch (TranslatableInvalidArgumentException $exception) {
-            $this->assertSame('Falta la clave obligatoria: bootstrap_class', $exception->trans($translator));
+            self::assertSame('Falta la clave obligatoria: bootstrap_class', $exception->trans($translator));
         }
     }
 }

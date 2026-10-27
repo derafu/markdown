@@ -1,0 +1,26 @@
+imports:
+    - { resource: '../../../resources/config/markdown-services.yaml' }
+
+services:
+    Symfony\Contracts\Translation\TranslatorInterface:
+        class: Symfony\Component\Translation\Translator
+        factory: ['Derafu\Translation\TranslatorFactory', 'create']
+        arguments:
+            $defaultLocale: es
+            $fallbackLocales: [en]
+            $resourceProviders: !tagged_iterator derafu_translation.resource_provider
+
+    test.admonition_config:
+        class: Derafu\Markdown\Extension\Admonition\AdmonitionConfig
+
+    test.markdown_services:
+        class: Symfony\Component\DependencyInjection\ServiceLocator
+        public: true
+        tags: [container.service_locator]
+        arguments:
+            -
+                'Derafu\Markdown\Contract\MarkdownCreatorInterface': '@Derafu\Markdown\Contract\MarkdownCreatorInterface'
+                'Derafu\Markdown\Contract\MarkdownServiceInterface': '@Derafu\Markdown\Contract\MarkdownServiceInterface'
+                'Derafu\Markdown\Translation\MarkdownTranslationResourceProvider': '@Derafu\Markdown\Translation\MarkdownTranslationResourceProvider'
+                'Symfony\Contracts\Translation\TranslatorInterface': '@Symfony\Contracts\Translation\TranslatorInterface'
+                admonition_config: '@test.admonition_config'

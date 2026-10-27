@@ -1,0 +1,11 @@
+imports:
+    - { resource: services.yaml }
+
+parameters:
+    derafu.markdown.paths: ['%kernel.project_dir%/tests/fixtures/services']
+    derafu.markdown.options:
+        environment:
+            html_input: strip
+            heading_permalink:
+                html_class: configured-permalink
+                symbol: '#'
