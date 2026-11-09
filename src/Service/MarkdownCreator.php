@@ -152,10 +152,12 @@ class MarkdownCreator implements MarkdownCreatorInterface
         // Create the environment with the resolved configuration. The host of
         // the current request is the internal host of the links, unless the
         // options say otherwise.
-        $environment = new Environment(array_replace_recursive(
+        /** @var array<string, mixed> $configuration */
+        $configuration = array_replace_recursive(
             $this->requestEnvironment(),
             $options['environment']
-        ));
+        );
+        $environment = new Environment($configuration);
 
         // Register extensions for Markdown processing.
         foreach ($options['extensions'] as $extension) {
@@ -187,6 +189,7 @@ class MarkdownCreator implements MarkdownCreatorInterface
             ...$this->options['extensions'],
             ...$this->validExtensions($options['extensions'] ?? []),
         ]));
+        /** @var array<string, mixed> $environment */
         $environment = array_replace_recursive(
             $this->options['environment'],
             $this->stringKeyed($options['environment'] ?? [], 'environment')
